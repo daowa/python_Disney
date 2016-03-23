@@ -1,17 +1,22 @@
 #coding=utf8
-from numpy import *
-from sklearn import datasets, svm, naive_bayes, metrics
+import numpy as np
+from sklearn import naive_bayes, metrics, preprocessing
 from sklearn.externals import joblib
 import Data, MS
+import types
 
 # 计算分类器的准确率和召回率（常规）
-def calculate_result(actual,pred):
+def calculate_result_normal(actual,pred):
     m_precision = metrics.precision_score(actual,pred);
     m_recall = metrics.recall_score(actual,pred);
     print 'predict info:'
     print 'precision:{0:.3f}'.format(m_precision)
     print 'recall:{0:0.3f}'.format(m_recall);
     print 'f1-score:{0:.3f}'.format(metrics.f1_score(actual,pred));
+
+# 计算分类器的准确率和召回率（关键词抽取-每篇取前三个）
+def calculate_result_keyword():
+    pass
 
 # 训练模型并保存到硬盘，其中model为分类器类型，size为训练集占比（如0.75）
 def training(model, size):
@@ -22,12 +27,24 @@ def training(model, size):
     trainY = tt["target"][:SIZE]
     testX = tt["data"][SIZE:]
     testY = tt["target"][SIZE:]
+    # 数据标准化
+    scaleX = preprocessing.StandardScaler().fit(trainX)
+    trainX = scaleX.transform(trainX)
+    testX = scaleX.transform(testX)
+    # 数据正则化
+    # scaleX = preprocessing.Normalizer().fit(trainX)
+    # trainX = scaleX.transform(trainX)
+    # testX = scaleX.transform(testX)
+    # 数据归一化
+    # scaleX = preprocessing.MinMaxScaler().fit(trainX)
+    # trainX = scaleX.transform(trainX)
+    # testX = scaleX.transform(testX)
     # 训练模型
     if model == MS.MODEL_GaussianNaiveBayes:
         clf = naive_bayes.GaussianNB()
         clf.fit(trainX, trainY)
         pred = clf.predict(testX)
-    calculate_result(testY, pred)
+    calculate_result_normal(testY, pred)
     # 将模型保存到硬盘
     path = "E:\\work\\迪士尼\\output\\" + str(model) + ".pkl"
     joblib.dump(clf, path.decode("utf8").encode("gb2312"), compress=3)
