@@ -1,9 +1,13 @@
 #coding=utf8
+import sys
+reload(sys)
+sys.setdefaultencoding("utf8")
+
 import numpy as np
 from sklearn import naive_bayes, metrics, preprocessing
 from sklearn.externals import joblib
+import os
 import Data, MS
-import types
 
 # 计算分类器的准确率和召回率（常规）
 def calculate_result_normal(actual,pred):
@@ -57,10 +61,10 @@ def getCLF(model):
     return clf
 
 # 根据分类器给出的“是关键词”可能性排序，输出前n个
-# 第一个参数表示使用的训练好的分类器，第二个参数表示输出topN
-def getTopProbability(clf, n):
-    pathX = "E:\\work\\迪士尼\\output\\单篇特征值\\35664.txt".decode("utf8").encode("gb2312")
-    pathW = "E:\\work\\迪士尼\\output\\单篇特征值所对应的词\\35664.txt".decode("utf8").encode("gb2312")
+# 第一个参数表示使用的训练好的分类器，第二个参数表示输出topN，第三个参数表示文本id号
+def getTopProbability(clf, n, id):
+    pathX = ("E:\\work\\迪士尼\\output\\单篇特征值\\" + str(id) + ".txt").decode("utf8").encode("gb2312")
+    pathW = ("E:\\work\\迪士尼\\output\\单篇特征值所对应的词\\" + str(id) + ".txt").decode("utf8").encode("gb2312")
     # 获取特征值
     fX = open(pathX)
     oneX = []
@@ -83,9 +87,30 @@ def getTopProbability(clf, n):
     # 将特征词和关键词可能性关联
     pKeyWord = {}
     for i in range(len(oneX)):
-        pKeyWord[oneW[i]] = clf.predict_proba(oneX[i])[0][1]
-    print pKeyWord
+        pKeyWord[oneW[i]] = clf.predict_proba(np.array(oneX[i]).reshape(-1, 1))[0][1]
     sortPKW = sorted(pKeyWord.iteritems(), key=lambda d:d[1], reverse=True)
     print sortPKW
-    for i in range(n):
-        print(sortPKW[i][0].decode("gb2312"))
+    result = []
+    pResult = ""
+    for i in (range(n) if n < len(sortPKW) else range(len(sortPKW))):
+        try:
+            pResult += sortPKW[i][0].decode("gbk") + ","
+            result.append(sortPKW[i][0].decode("gbk"))
+        except:
+            pass
+    print pResult[:-1]
+    return result
+
+def outputALlDianPingKeyWords(clf, n):
+    list = []
+    for s in os.listdir("E:\\work\\迪士尼\\output\\单篇特征值".decode("utf8").encode("gb2312")):
+        list.append(getTopProbability(clf, n, s[:-4]))
+    print list
+    fw = open("E:\\work\\迪士尼\\output\\keywords.txt".decode("utf8").encode("gb2312"), "w")
+    for words in list:
+        line = ""
+        for word in words:
+            line += word + ","
+        fw.write(line[:-1] + "\r\n")
+    fw.close()
+    print "已将所有点评的关键词输出到E:\\work\\迪士尼\\output\\keywords.txt"
