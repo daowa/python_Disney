@@ -27,8 +27,12 @@ def calculate_result_keyword(tt, clf, size):
     SIZE = int(size * len(tt["id"]))
     ids = tt["id"][SIZE:]
     keywords = tt["keywords"][SIZE:]
+    topTFIDFs = tt["topTFIDF"][SIZE:]
+    topFrequencys = tt["topFrequency"][SIZE:]
     # 正确的词数量
     countTrue = 0
+    countTrue_tfidf = 0
+    countTrue_frequency = 0
     # 总共提取出的词数
     countPredict = 0
     # 样本中的词数
@@ -36,16 +40,31 @@ def calculate_result_keyword(tt, clf, size):
     for i in range(len(keywords)):
         predictWords = getTopProbability(clf, 3, ids[i])
         countPredict += len(predictWords)
-        for j in range(len(predictWords)):
+        for j in range(len(predictWords)):#分类器输出的关键词
             if predictWords[j] in keywords[i]:
                 countTrue += 1
+        for j in range(len(topTFIDFs[i])):#topTFIDFs输出的关键词
+            if topTFIDFs[i][j] in keywords[i]:
+                countTrue_tfidf += 1
+        for j in range(len(topFrequencys[i])):#topFrequencys输出的关键词
+            if topFrequencys[i][j] in keywords[i]:
+                countTrue_frequency += 1
+    #计算准确率(有空改成个函数计算吧，现在下面写那么多变量好难看）
     precision = float(countTrue)/float(countPredict)
+    precision_tfidf = float(countTrue_tfidf)/float(countPredict)
+    precision_frequency = float(countTrue_frequency)/float(countPredict)
+    #计算召回率
     recall = float(countTrue)/float(countAll)
+    recall_tfidf = float(countTrue_tfidf)/float(countAll)
+    recall_frequency = float(countTrue_frequency)/float(countAll)
+    #计算F值
     f1 = precision*recall*2 / float(precision + recall)
+    f1_tfidf = precision_tfidf*recall_tfidf*2 / float(precision_tfidf + recall_tfidf)
+    f1_frequency = precision_frequency*recall_frequency*2 / float(precision_frequency + recall_frequency)
     print 'predict info(keywords):'
-    print 'precision:{0:.3f}'.format(precision)
-    print 'recall:{0:0.3f}'.format(recall)
-    print 'f1-score:{0:.3f}'.format(f1)
+    print 'precision:{0:.3f}'.format(precision) + " (tfidf:{0:.3f}".format(precision_tfidf) + ")(frequency:{0:0.3f}".format(precision_frequency) + ")"
+    print 'recall:{0:0.3f}'.format(recall) + " (tfidf:{0:.3f}".format(recall_tfidf) + ")(frequency:{0:0.3f}".format(recall_frequency) + ")"
+    print 'f1-score:{0:.3f}'.format(f1) + " (tfidf:{0:.3f}".format(f1_tfidf) + ")(frequency:{0:0.3f}".format(f1_frequency) + ")"
     print "#######################"
 
 # 训练模型并保存到硬盘，其中model为分类器类型，size为训练集占比（如0.75）
@@ -69,12 +88,18 @@ def training(model, size):
     # scaleX = preprocessing.MinMaxScaler().fit(trainX)
     # trainX = scaleX.transform(trainX)
     # testX = scaleX.transform(testX)
+    print trainX
     # 训练模型
     if model == MS.MODEL_GaussianNaiveBayes:
         clf = naive_bayes.GaussianNB()
+    elif model == MS.MODEL_MultinomialNaiveBayes:
+        clf = naive_bayes.MultinomialNB(alpha=0.01)
+    elif model == MS.MODEL_BernoulliNaiveBayes:
+        clf = naive_bayes.BernoulliNB()
     clf.fit(trainX, trainY)
     # 评估模型效果
     pred = clf.predict(testX)
+    print pred
     calculate_result_normal(testY, pred)
     calculate_result_keyword(tt, clf, size)
     # 将模型保存到硬盘
@@ -115,7 +140,7 @@ def getTopProbability(clf, n, id):
     # 将特征词和关键词可能性关联
     pKeyWord = {}
     for i in range(len(oneX)):
-        pKeyWord[oneW[i]] = clf.predict_proba(np.array(oneX[i]).reshape(-1, 1))[0][1]
+        pKeyWord[oneW[i]] = clf.predict_proba(np.array(oneX[i]).reshape(1, -1))[0][1]
     sortPKW = sorted(pKeyWord.iteritems(), key=lambda d:d[1], reverse=True)
     # print sortPKW
     result = []
@@ -126,7 +151,7 @@ def getTopProbability(clf, n, id):
             result.append(sortPKW[i][0].decode("gbk"))
         except:
             pass
-    # print pResult[:-1]
+    print pResult[:-1]
     return result
 
 def outputALlDianPingKeyWords(clf, n):

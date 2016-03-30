@@ -42,7 +42,29 @@ def getTrainingtData():
             kws.append(temp[i].decode("gbk"))
         keywords.append(kws)
     fKW.close()
+    # 获取topTFIDF的词
+    topTFIDFS = []
+    path = "E:\\work\\迪士尼\\output\\trainingTopTFIDF.txt".decode("utf8").encode("gb2312")
+    fTI = open(path)
+    for line in fTI.readlines():
+        temp = line.split(",")
+        tfidf = []
+        for i in range(len(temp)):
+            tfidf.append(temp[i].decode("gbk"))
+        topTFIDFS.append(tfidf)
+    fTI.close()
+    # 获取top词频的词
+    topFrequencys = []
+    path = "E:\\work\\迪士尼\\output\\trainingTopFrequency.txt".decode("utf8").encode("gb2312")
+    fFQ = open(path)
+    for line in fFQ.readlines():
+        temp = line.split(",")
+        frequency = []
+        for i in range(len(temp)):
+            frequency.append(temp[i].decode("gbk"))
+        topFrequencys.append(frequency)
+    fFQ.close()
     # 放入字典中，之后可以根据下标查询到同一个样本的 id、特征、目标、关键词(并不能现在。。只看前半句吧)
-    tt = {"data":data, "target":target, "id":ids, "keywords": keywords}
+    tt = {"data":data, "target":target, "id":ids, "keywords": keywords, "topTFIDF": topTFIDFS, "topFrequency": topFrequencys}
     return tt
 
