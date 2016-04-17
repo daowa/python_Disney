@@ -29,6 +29,7 @@ def getTrainingtData():
     path = "E:\\work\\迪士尼\\output\\trainingID.txt".decode("utf8").encode("gb2312")
     fID = open(path)
     for line in fID.readlines():
+        line = line.replace("\n", "")#(ATTENTION!)去换行
         ids.append(int(line))
     fID.close()
     # 获取关键词
@@ -36,6 +37,7 @@ def getTrainingtData():
     path = "E:\\work\\迪士尼\\output\\trainingWord.txt".decode("utf8").encode("gb2312")
     fKW = open(path)
     for line in fKW.readlines():
+        line = line.replace("\n", "")#(ATTENTION!)去换行
         temp = line.split(",")
         kws = []
         for i in range(len(temp)):
@@ -47,6 +49,7 @@ def getTrainingtData():
     path = "E:\\work\\迪士尼\\output\\trainingTopTFIDF.txt".decode("utf8").encode("gb2312")
     fTI = open(path)
     for line in fTI.readlines():
+        line = line.replace("\n", "")#(ATTENTION!)去换行
         temp = line.split(",")
         tfidf = []
         for i in range(len(temp)):
@@ -58,6 +61,7 @@ def getTrainingtData():
     path = "E:\\work\\迪士尼\\output\\trainingTopFrequency.txt".decode("utf8").encode("gb2312")
     fFQ = open(path)
     for line in fFQ.readlines():
+        line = line.replace("\n", "")#(ATTENTION!)去换行
         temp = line.split(",")
         frequency = []
         for i in range(len(temp)):
